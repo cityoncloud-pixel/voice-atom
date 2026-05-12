@@ -6,17 +6,15 @@
     "allow_chat_approval_token": true,
     "chat_approval_token": "APPROVE"
   },
-  "pending": [
+  "pending": [],
+  "history": [
     {
       "id": "init-approval",
       "scope": "start_execution",
       "task_id": null,
       "summary": "Approve AI to execute the current goal end-to-end (until completion) within defined scope.",
-      "status": "PENDING",
-      "owner_note": ""
+      "status": "APPROVED",
+      "owner_note": "Owner replied approve in chat (2026-05-12)."
     }
-  ],
-  "history": []
+  ]
 }
-
-

@@ -20,3 +20,39 @@
 - 发现问题（已完成但不对）：把复现写到 `project_control/issues.md`，AI 先给“可能原因 + 证据收集计划”，定位根因后修复并回归验证。
 - 新要求/变更：追加到 `project_control/change_requests.md`，必要时更新 `project_control/goal.md`，并再次征得同意后继续。
 
+---
+
+## voice-atom（本仓库 Python 包）
+
+语音转文字原子能力：**CLI + Python SDK + 本机 HTTP API**，默认本地 `whisper.cpp`。需求与边界见 `project_control/.ggs/idea.md`，验收目标见 `project_control/goal.md`。
+
+### 安装（开发）
+
+```powershell
+python -m pip install -e ".[dev]"
+```
+
+### whisper.cpp
+
+请自备可执行文件与模型，并在环境变量或 `.env` 中配置 `VOICE_ATOM_WHISPER_CPP_BIN`、`VOICE_ATOM_WHISPER_MODEL`。模板见 `.env.example`。
+
+### 常用命令
+
+```powershell
+voice-atom config check --json
+voice-atom providers list --json
+voice-atom transcribe-file .\audio.wav --json
+voice-atom record --seconds 8 --json
+voice-atom server --host 127.0.0.1 --port 17860
+```
+
+### 豆包 ASR（上传模式）
+
+设置 `VOICE_ATOM_PROVIDER=doubao`，并配置 `DOUBAO_API_KEY`、`DOUBAO_ASR_MODEL`、`DOUBAO_ASR_UPLOAD_URL`（HTTPS 上传端点与字段以火山引擎文档为准；本实现为通用 multipart 上传占位，可按文档调整）。
+
+### 测试
+
+```powershell
+python -m pytest
+```
+
