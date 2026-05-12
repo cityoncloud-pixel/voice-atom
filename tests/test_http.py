@@ -97,3 +97,20 @@ def test_http_record(client: TestClient) -> None:
     body = r.json()
     assert body["ok"] is True
     assert body["text"] == "hello world"
+
+
+def test_http_transcribe_upload_wav(client: TestClient) -> None:
+    r = client.post(
+        "/transcribe-upload",
+        files={"file": ("clip.wav", minimal_wav_bytes(), "audio/wav")},
+    )
+    assert r.status_code == 200
+    body = r.json()
+    assert body["ok"] is True
+    assert body["text"] == "hello world"
+
+
+def test_http_root_lists_web_ui(client: TestClient) -> None:
+    r = client.get("/")
+    assert r.status_code == 200
+    assert r.json().get("web_ui") == "/ui/"

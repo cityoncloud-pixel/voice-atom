@@ -644,9 +644,13 @@ HTTP API 是第一批目标，不后移。
 GET /healthz
 POST /record
 POST /transcribe-file
+POST /transcribe-upload
 GET /providers
 GET /config/check
+GET /ui/
 ```
+
+说明：`GET /ui/` 为静态网页入口（用于浏览器麦克风联调）；`POST /transcribe-upload` 为 `multipart/form-data` 上传音频（见 §15.8）。
 
 ### 15.3 GET /healthz
 
@@ -666,7 +670,7 @@ GET /config/check
 
 ```json
 {
-  "seconds": 8
+  "seconds": 10
 }
 ```
 
@@ -720,6 +724,18 @@ GET /config/check
 - 可返回 masked key，例如 `sk-***abcd`；
 - 必须检查 whisper.cpp bin 和 model 是否存在；
 - 必须检查输出目录是否可写。
+
+### 15.8 POST /transcribe-upload（浏览器联调）
+
+- **Content-Type**：`multipart/form-data`，字段名 **`file`**。
+- **服务端**：将上传保存到 `runs/YYYY-MM-DD/uploads/` 下临时文件；若后缀不是 `.wav`，使用本机 **`ffmpeg`** 转为 **16kHz 单声道 s16 WAV**，再调用与 `POST /transcribe-file` 相同的 **`service.transcribe_file`**（不得绕过 service）。
+- **返回**：与标准 `TranscriptionResult` 相同。
+- **体积**：单文件约 **30MB** 上限（防误传大文件）。
+
+### 15.9 网页测试 UI（按住说话）
+
+- 静态资源挂载 **`/ui/`**（默认 `index.html`），用于同源环境下的 **MediaRecorder** 录音与 **`fetch('/transcribe-upload')`** 联调。
+- 交互形态：按住录音、松开停止并上传转写；结果追加到页面文本框（实现细节以仓库 `voice_atom/static/index.html` 为准）。
 
 ---
 

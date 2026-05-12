@@ -20,7 +20,7 @@ from voice_atom.models import (
     utc_now_iso,
 )
 from voice_atom.recorder import record_wav_seconds
-from voice_atom.utils.audio import ensure_wav_file
+from voice_atom.utils.audio import ensure_transcribable_file
 from voice_atom.utils.paths import next_wav_path
 
 
@@ -87,7 +87,7 @@ class VoiceAtomService:
 
     def transcribe_file(self, audio_path: str) -> TranscriptionSuccess | TranscriptionFailure:
         try:
-            path = ensure_wav_file(audio_path)
+            path = ensure_transcribable_file(audio_path)
             provider = self._make_active_provider()
             text = provider.transcribe(path)
             duration = _wav_duration(path)

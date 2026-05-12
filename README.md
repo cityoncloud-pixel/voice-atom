@@ -53,6 +53,13 @@ voice-atom server --host 127.0.0.1 --port 17860
 
 `record` 默认 **先倒计时 3 秒再开麦**（`--countdown N`，`0` 关闭）；提示与数字在 **stderr**，JSON 在 **stdout**。
 
+### 网页按住说话（测试 UI）
+
+1. 启动：`voice-atom server`  
+2. 浏览器打开：**`http://127.0.0.1:17860/ui/`**  
+3. 按住「按住说话」录音，松开后自动调用 **`POST /transcribe-upload`** 转写，结果追加到文本框。  
+4. 本机需已安装 **`ffmpeg`**（用于把浏览器 WebM 转成 16kHz WAV 再送 whisper）。
+
 ### 豆包 ASR（上传模式）
 
 设置 `VOICE_ATOM_PROVIDER=doubao`，并配置 `DOUBAO_API_KEY`、`DOUBAO_ASR_MODEL`、`DOUBAO_ASR_UPLOAD_URL`（HTTPS 上传端点与字段以火山引擎文档为准；本实现为通用 multipart 上传占位，可按文档调整）。

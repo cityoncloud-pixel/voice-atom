@@ -40,7 +40,7 @@ def _settings_with_whisper(tmp_path: Path) -> Settings:
 
 
 def test_transcribe_file_invalid_ext(tmp_path: Path) -> None:
-    p = tmp_path / "a.mp3"
+    p = tmp_path / "a.zip"
     p.write_text("x", encoding="utf-8")
     svc = VoiceAtomService(_settings_with_whisper(tmp_path))
     res = svc.transcribe_file(str(p))

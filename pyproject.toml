@@ -33,6 +33,9 @@ voice-atom = "voice_atom.cli:app"
 where = ["."]
 include = ["voice_atom*"]
 
+[tool.setuptools.package-data]
+voice_atom = ["static/*.html"]
+
 [tool.pytest.ini_options]
 testpaths = ["tests"]
 pythonpath = ["."]
