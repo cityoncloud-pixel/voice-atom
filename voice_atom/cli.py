@@ -48,6 +48,14 @@ def record_cmd(
     as_json: bool = typer.Option(False, "--json", help="Print JSON envelope"),
 ) -> None:
     """Record from microphone for a fixed duration, then transcribe."""
+    hint = (
+        f"开始录音：共 {seconds} 秒，麦克风此刻已开启，请现在说话；"
+        f"结束后将自动调用 whisper 转写。"
+    )
+    if as_json:
+        typer.echo(hint, err=True)
+    else:
+        typer.echo(hint)
     svc = get_service()
     res = svc.transcribe_from_mic(seconds)
     _print_result(res, as_json)
