@@ -61,7 +61,7 @@ class WhisperCppProvider:
                 "-t",
                 str(self._settings.voice_atom_threads),
                 "-otxt",
-                "-ofn",
+                "-of",
                 str(out_prefix),
             ]
             extra = self._settings.voice_atom_whisper_extra_args.strip()
@@ -73,6 +73,8 @@ class WhisperCppProvider:
                     cmd,
                     capture_output=True,
                     text=True,
+                    encoding="utf-8",
+                    errors="replace",
                     timeout=3600,
                     check=False,
                 )
