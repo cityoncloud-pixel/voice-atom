@@ -286,6 +286,12 @@ TranscriptionResult
   "meta": {
     "model": "ggml-small.bin",
     "source": "mic"
+  },
+  "timing": {
+    "upload_save_ms": 0,
+    "audio_convert_ms": 0,
+    "asr_ms": 3200,
+    "total_ms": 3900
   }
 }
 ```
@@ -302,6 +308,7 @@ TranscriptionResult
 | duration_seconds | number | 否 | 音频时长 |
 | created_at | string | 是 | 创建时间，ISO 格式 |
 | meta | object | 是 | Provider 或模型相关元信息 |
+| timing | object | 否 | 耗时分解（毫秒）：`upload_save_ms`（读流+落盘）、`audio_convert_ms`（ffmpeg，非 wav 上传）、`asr_ms`（Provider 转写）、`total_ms`（端到端）；CLI/SDK 路径上前两项多为 0 |
 
 ### 8.2 失败返回
 

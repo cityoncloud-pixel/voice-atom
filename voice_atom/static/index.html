@@ -211,7 +211,12 @@
         const t = (data.text || "").trim();
         const prev = out.value.trimEnd();
         out.value = prev ? prev + "\n" + t : t;
-        setStatus("就绪（已追加一行）", "ok");
+        let extra = "";
+        if (data.timing) {
+          const ti = data.timing;
+          extra = " ｜ upload " + ti.upload_save_ms + "ms · convert " + ti.audio_convert_ms + "ms · ASR " + ti.asr_ms + "ms · 合计 " + ti.total_ms + "ms";
+        }
+        setStatus("就绪（已追加一行）" + extra, "ok");
       } else {
         const msg = data.error && data.error.message ? data.error.message : JSON.stringify(data);
         setStatus("转写失败：" + msg, "err");

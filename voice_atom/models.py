@@ -15,6 +15,15 @@ class ErrorBody(BaseModel):
     details: dict[str, Any] = Field(default_factory=dict)
 
 
+class TranscriptionTiming(BaseModel):
+    """Wall-clock stages in milliseconds (best-effort breakdown)."""
+
+    upload_save_ms: int = 0
+    audio_convert_ms: int = 0
+    asr_ms: int = 0
+    total_ms: int = 0
+
+
 class TranscriptionSuccess(BaseModel):
     ok: Literal[True] = True
     text: str
@@ -24,6 +33,7 @@ class TranscriptionSuccess(BaseModel):
     duration_seconds: float | None = None
     created_at: str
     meta: dict[str, Any] = Field(default_factory=dict)
+    timing: TranscriptionTiming | None = None
 
 
 class TranscriptionFailure(BaseModel):

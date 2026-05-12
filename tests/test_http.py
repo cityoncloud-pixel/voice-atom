@@ -89,6 +89,8 @@ def test_http_transcribe_file(client: TestClient, tmp_path: Path) -> None:
     body = r.json()
     assert body["ok"] is True
     assert body["text"] == "hello world"
+    assert body["timing"]["asr_ms"] >= 0
+    assert body["timing"]["total_ms"] >= body["timing"]["asr_ms"]
 
 
 def test_http_record(client: TestClient) -> None:
@@ -97,6 +99,7 @@ def test_http_record(client: TestClient) -> None:
     body = r.json()
     assert body["ok"] is True
     assert body["text"] == "hello world"
+    assert body["timing"]["asr_ms"] >= 0
 
 
 def test_http_transcribe_upload_wav(client: TestClient) -> None:
@@ -108,6 +111,11 @@ def test_http_transcribe_upload_wav(client: TestClient) -> None:
     body = r.json()
     assert body["ok"] is True
     assert body["text"] == "hello world"
+    ti = body["timing"]
+    assert ti["upload_save_ms"] >= 0
+    assert ti["audio_convert_ms"] == 0
+    assert ti["asr_ms"] >= 0
+    assert ti["total_ms"] >= ti["upload_save_ms"] + ti["asr_ms"]
 
 
 def test_http_root_lists_web_ui(client: TestClient) -> None:

@@ -2,6 +2,8 @@
 
 from __future__ import annotations
 
+import logging
+import time
 import wave
 from pathlib import Path
 
@@ -17,11 +19,14 @@ from voice_atom.models import (
     ProviderStatusModel,
     TranscriptionFailure,
     TranscriptionSuccess,
+    TranscriptionTiming,
     utc_now_iso,
 )
 from voice_atom.recorder import record_wav_seconds
 from voice_atom.utils.audio import ensure_transcribable_file
 from voice_atom.utils.paths import next_wav_path
+
+_log = logging.getLogger(__name__)
 
 
 def _wav_duration(path: Path) -> float | None:
@@ -86,11 +91,23 @@ class VoiceAtomService:
         )
 
     def transcribe_file(self, audio_path: str) -> TranscriptionSuccess | TranscriptionFailure:
+        t0 = time.perf_counter()
         try:
             path = ensure_transcribable_file(audio_path)
             provider = self._make_active_provider()
+            t_asr0 = time.perf_counter()
             text = provider.transcribe(path)
+            t_asr1 = time.perf_counter()
             duration = _wav_duration(path)
+            asr_ms = int((t_asr1 - t_asr0) * 1000)
+            total_ms = int((time.perf_counter() - t0) * 1000)
+            timing = TranscriptionTiming(
+                upload_save_ms=0,
+                audio_convert_ms=0,
+                asr_ms=asr_ms,
+                total_ms=total_ms,
+            )
+            _log.info("transcribe_file timing %s path=%s", timing.model_dump(), path)
             return TranscriptionSuccess(
                 text=text,
                 language=self.settings.voice_atom_language,
@@ -104,6 +121,7 @@ class VoiceAtomService:
                     else self.settings.doubao_asr_model,
                     "source": "file",
                 },
+                timing=timing,
             )
         except VoiceAtomError as e:
             return _failure(e)
@@ -118,11 +136,23 @@ class VoiceAtomService:
             )
 
     def transcribe_from_mic(self, seconds: int) -> TranscriptionSuccess | TranscriptionFailure:
+        t0 = time.perf_counter()
         try:
             out_path = next_wav_path(self.settings.voice_atom_output_dir)
             duration = float(self._recorder(out_path, int(seconds)))
             provider = self._make_active_provider()
+            t_asr0 = time.perf_counter()
             text = provider.transcribe(out_path)
+            t_asr1 = time.perf_counter()
+            asr_ms = int((t_asr1 - t_asr0) * 1000)
+            total_ms = int((time.perf_counter() - t0) * 1000)
+            timing = TranscriptionTiming(
+                upload_save_ms=0,
+                audio_convert_ms=0,
+                asr_ms=asr_ms,
+                total_ms=total_ms,
+            )
+            _log.info("transcribe_from_mic timing %s", timing.model_dump())
             return TranscriptionSuccess(
                 text=text,
                 language=self.settings.voice_atom_language,
@@ -136,6 +166,7 @@ class VoiceAtomService:
                     else self.settings.doubao_asr_model,
                     "source": "mic",
                 },
+                timing=timing,
             )
         except VoiceAtomError as e:
             return _failure(e)

@@ -65,6 +65,9 @@ def test_transcribe_file_success(tmp_path: Path) -> None:
     res = svc.transcribe_file(str(wav))
     assert res.ok is True
     assert res.text == "hello world"
+    assert res.timing is not None
+    assert res.timing.asr_ms >= 0
+    assert res.timing.total_ms >= res.timing.asr_ms
 
 
 def test_transcribe_from_mic_success(tmp_path: Path) -> None:
@@ -81,6 +84,8 @@ def test_transcribe_from_mic_success(tmp_path: Path) -> None:
     res = svc.transcribe_from_mic(1)
     assert res.ok is True
     assert res.text == "hello world"
+    assert res.timing is not None
+    assert res.timing.total_ms >= res.timing.asr_ms
 
 
 def test_provider_failure_maps_to_error(tmp_path: Path) -> None:

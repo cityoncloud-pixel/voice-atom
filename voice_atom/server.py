@@ -2,8 +2,10 @@
 
 from __future__ import annotations
 
+import logging
 import shutil
 import subprocess
+import time
 import uuid
 from datetime import datetime, timezone
 from pathlib import Path
@@ -13,12 +15,13 @@ from fastapi.responses import JSONResponse
 from fastapi.staticfiles import StaticFiles
 
 from voice_atom import __version__
-from voice_atom.models import RecordRequest, TranscribeFileRequest
+from voice_atom.models import RecordRequest, TranscribeFileRequest, TranscriptionSuccess
 from voice_atom.service import get_service
 from voice_atom.utils.audio import WHISPER_INPUT_SUFFIXES
 
 app = FastAPI(title="voice-atom", version=__version__)
 _svc = get_service()
+_log = logging.getLogger(__name__)
 
 _MAX_UPLOAD_BYTES = 30 * 1024 * 1024
 _STATIC_DIR = Path(__file__).resolve().parent / "static"
@@ -70,6 +73,7 @@ def post_transcribe_file(body: TranscribeFileRequest) -> JSONResponse:
 @app.post("/transcribe-upload")
 async def transcribe_upload(file: UploadFile = File(..., description="Browser-recorded audio (e.g. WebM)")) -> JSONResponse:
     """Save upload, convert to WAV if needed (ffmpeg), then run the same service path as transcribe-file."""
+    t0 = time.perf_counter()
     raw = await file.read(_MAX_UPLOAD_BYTES + 1)
     if len(raw) > _MAX_UPLOAD_BYTES:
         return JSONResponse(
@@ -96,11 +100,15 @@ async def transcribe_upload(file: UploadFile = File(..., description="Browser-re
     raw_path = base / f"{uid}{ext}"
     wav_path = base / f"{uid}.wav"
     raw_path.write_bytes(raw)
+    upload_save_ms = int((time.perf_counter() - t0) * 1000)
+
     work_path: Path | None = None
+    audio_convert_ms = 0
     try:
         if raw_path.suffix.lower() == ".wav":
             work_path = raw_path
         else:
+            tc0 = time.perf_counter()
             try:
                 _ffmpeg_to_wav(raw_path, wav_path)
             except (subprocess.CalledProcessError, RuntimeError, subprocess.TimeoutExpired) as e:
@@ -116,9 +124,20 @@ async def transcribe_upload(file: UploadFile = File(..., description="Browser-re
                         },
                     },
                 )
+            audio_convert_ms = int((time.perf_counter() - tc0) * 1000)
             work_path = wav_path
         res = _svc.transcribe_file(str(work_path))
-        return JSONResponse(content=res.model_dump())
+        payload = res.model_dump()
+        if isinstance(res, TranscriptionSuccess) and res.timing is not None:
+            total_ms = int((time.perf_counter() - t0) * 1000)
+            payload["timing"] = {
+                "upload_save_ms": upload_save_ms,
+                "audio_convert_ms": audio_convert_ms,
+                "asr_ms": res.timing.asr_ms,
+                "total_ms": total_ms,
+            }
+            _log.info("transcribe-upload timing %s", payload["timing"])
+        return JSONResponse(content=payload)
     finally:
         for p in (raw_path, wav_path):
             try:

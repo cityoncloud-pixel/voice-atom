@@ -8,6 +8,7 @@ from voice_atom.models import (
     ProviderListResponse,
     TranscriptionFailure,
     TranscriptionSuccess,
+    TranscriptionTiming,
 )
 from voice_atom.service import VoiceAtomService, get_service
 
@@ -39,5 +40,6 @@ __all__ = [
     "transcribe_file",
     "get_providers",
     "check_config",
+    "TranscriptionTiming",
     "__version__",
 ]
