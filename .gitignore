@@ -69,3 +69,8 @@ __pycache__/
 # IDE (optional local; keep team-shared rules if you commit them)
 .idea/
 *.iml
+
+# whisper.cpp local installs (large / platform-specific)
+models/*.bin
+bin/*.exe
+bin/*.dll

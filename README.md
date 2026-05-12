@@ -36,6 +36,11 @@ python -m pip install -e ".[dev]"
 
 请自备可执行文件与模型，并在环境变量或 `.env` 中配置 `VOICE_ATOM_WHISPER_CPP_BIN`、`VOICE_ATOM_WHISPER_MODEL`。模板见 `.env.example`。
 
+- **Windows 预编译包**：可从 [whisper.cpp Releases](https://github.com/ggml-org/whisper.cpp/releases) 下载 `whisper-bin-x64.zip`，解压后将 `Release` 目录中的 `whisper-cli.exe` 与全部 `*.dll` 放到仓库 `bin/`。
+- **中文/多语言模型（约 200MB 量级）**：推荐 `ggml-small-q5_1.bin`（约 190MB，多语言含中文），下载地址示例：  
+  `https://huggingface.co/ggerganov/whisper.cpp/resolve/main/ggml-small-q5_1.bin`  
+  保存到 `models/` 后在 `.env` 中指向该文件即可。
+
 ### 常用命令
 
 ```powershell
