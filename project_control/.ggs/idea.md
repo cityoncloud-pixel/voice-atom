@@ -518,16 +518,16 @@ DOUBAO_ASR_MODEL=xxx
 ### 13.1 麦克风录音转写
 
 ```powershell
-voice-atom record --seconds 8
+voice-atom record --seconds 10
 ```
 
-默认输出纯文本。
+默认输出纯文本。默认录制 **10** 秒；可选 `--countdown N`（默认 **3**，`0` 关闭）：**倒计时结束后再开启麦克风**，倒计时提示输出到 stderr，避免与 stdout 纯文本混淆。
 
 ```powershell
-voice-atom record --seconds 8 --json
+voice-atom record --seconds 10 --json
 ```
 
-输出标准 JSON。
+输出标准 JSON（准备提示与倒计时同样走 stderr）。
 
 ### 13.2 音频文件转写
 
@@ -730,7 +730,7 @@ GET /config/check
 ```env
 VOICE_ATOM_PROVIDER=whisper_cpp
 VOICE_ATOM_OUTPUT_DIR=./runs
-VOICE_ATOM_DEFAULT_SECONDS=8
+VOICE_ATOM_DEFAULT_SECONDS=10
 
 VOICE_ATOM_WHISPER_CPP_BIN=./bin/whisper-cli
 VOICE_ATOM_WHISPER_MODEL=./models/ggml-small.bin
@@ -763,7 +763,7 @@ DOUBAO_ASR_MODEL=
 第一批只要求固定秒数录音：
 
 ```powershell
-voice-atom record --seconds 8
+voice-atom record --seconds 10
 ```
 
 录音结果保存为 wav 文件。
@@ -863,7 +863,7 @@ runs/2026-05-12/001.wav
 ```powershell
 voice-atom config check
 voice-atom providers list
-voice-atom record --seconds 8 --json
+voice-atom record --seconds 10 --json
 voice-atom transcribe-file ./test.wav --json
 voice-atom server --host 127.0.0.1 --port 17860
 ```

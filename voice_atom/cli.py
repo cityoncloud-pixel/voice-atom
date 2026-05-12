@@ -3,6 +3,7 @@
 from __future__ import annotations
 
 import json
+import time
 from typing import Optional
 
 import typer
@@ -22,6 +23,14 @@ app = typer.Typer(
 )
 app.add_typer(providers_app, name="providers")
 app.add_typer(config_app, name="config")
+
+
+def _countdown_cli(seconds: int) -> None:
+    """Print one number per line to stderr, then wait 1s until done."""
+    for i in range(seconds, 0, -1):
+        typer.echo(str(i), err=True)
+        if i > 1:
+            time.sleep(1)
 
 
 def _print_result(data: object, as_json: bool) -> None:
@@ -44,18 +53,28 @@ def _print_result(data: object, as_json: bool) -> None:
 
 @app.command("record")
 def record_cmd(
-    seconds: int = typer.Option(8, "--seconds", "-s", min=1, max=600),
+    seconds: int = typer.Option(10, "--seconds", "-s", min=1, max=600),
+    countdown: int = typer.Option(
+        3,
+        "--countdown",
+        "-c",
+        min=0,
+        max=30,
+        help="倒计时秒数：结束后再开麦录音（0 表示关闭）。",
+    ),
     as_json: bool = typer.Option(False, "--json", help="Print JSON envelope"),
 ) -> None:
     """Record from microphone for a fixed duration, then transcribe."""
-    hint = (
-        f"开始录音：共 {seconds} 秒，麦克风此刻已开启，请现在说话；"
-        f"结束后将自动调用 whisper 转写。"
+    if countdown > 0:
+        typer.echo(
+            f"准备：倒计时 {countdown} 秒结束后开始录音（随后固定录制 {seconds} 秒）。",
+            err=True,
+        )
+        _countdown_cli(countdown)
+    typer.echo(
+        f"麦克风已开启：请说话（{seconds} 秒后结束，随后转写）。",
+        err=True,
     )
-    if as_json:
-        typer.echo(hint, err=True)
-    else:
-        typer.echo(hint)
     svc = get_service()
     res = svc.transcribe_from_mic(seconds)
     _print_result(res, as_json)

@@ -17,7 +17,7 @@ class Settings(BaseSettings):
 
     voice_atom_provider: str = Field(default="whisper_cpp")
     voice_atom_output_dir: Path = Field(default=Path("./runs"))
-    voice_atom_default_seconds: int = Field(default=8)
+    voice_atom_default_seconds: int = Field(default=10)
 
     voice_atom_whisper_cpp_bin: Path = Field(default=Path("./bin/whisper-cli"))
     voice_atom_whisper_model: Path = Field(default=Path("./models/ggml-small.bin"))

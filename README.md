@@ -47,9 +47,11 @@ python -m pip install -e ".[dev]"
 voice-atom config check --json
 voice-atom providers list --json
 voice-atom transcribe-file .\audio.wav --json
-voice-atom record --seconds 8 --json
+voice-atom record --seconds 10 --json
 voice-atom server --host 127.0.0.1 --port 17860
 ```
+
+`record` 默认 **先倒计时 3 秒再开麦**（`--countdown N`，`0` 关闭）；提示与数字在 **stderr**，JSON 在 **stdout**。
 
 ### 豆包 ASR（上传模式）
 
