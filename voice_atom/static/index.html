@@ -46,15 +46,44 @@
       margin: 0 0 1.25rem;
       line-height: 1.45;
     }
-    #status {
-      font-size: .8rem;
+    .status-block {
+      margin-bottom: .85rem;
+      padding: .65rem .75rem;
+      border-radius: 10px;
+      background: rgba(0,0,0,.22);
+      border: 1px solid rgba(255,255,255,.08);
+    }
+    .status-label {
+      font-size: .68rem;
+      text-transform: uppercase;
+      letter-spacing: .14em;
       color: var(--muted);
-      min-height: 1.25rem;
-      margin-bottom: .75rem;
+      margin-bottom: .35rem;
+    }
+    #status {
+      font-size: .88rem;
+      color: var(--text);
+      min-height: 1.35rem;
+      margin-bottom: .5rem;
     }
     #status.busy { color: var(--accent); }
     #status.err { color: var(--danger); }
     #status.ok { color: var(--ok); }
+    #timingPanel {
+      font-size: .78rem;
+      font-family: ui-monospace, "Cascadia Mono", Consolas, monospace;
+      color: var(--muted);
+      line-height: 1.45;
+      min-height: 2.4em;
+      white-space: pre-wrap;
+      word-break: break-all;
+    }
+    #timingPanel.has-data {
+      color: #a5d6ff;
+      border-left: 3px solid var(--accent);
+      padding-left: .5rem;
+      margin-left: -2px;
+    }
     #hold {
       width: 100%;
       padding: 1.1rem 1rem;
@@ -111,8 +140,12 @@
 <body>
   <main>
     <h1>voice-atom 网页录音</h1>
-    <p class="sub">按住下方按钮说话，松开后自动上传并转写，结果会<strong>追加</strong>到文本框。请使用与本服务同源地址打开（例如 <code>http://127.0.0.1:17860/ui/</code>）。</p>
-    <div id="status" class="status">就绪</div>
+    <p class="sub">按住下方按钮说话，松开后自动上传并转写，结果会<strong>追加</strong>到文本框。请使用与本服务同源地址打开（例如 <code>http://127.0.0.1:17860/ui/</code>）。<strong>不是 Windows 任务栏</strong>：请看按钮<strong>上方灰色卡片</strong>里的「状态 / 耗时」。</p>
+    <div class="status-block">
+      <div class="status-label">状态（本页内）</div>
+      <div id="status" class="status">就绪</div>
+      <div id="timingPanel" class="timing-panel">转写成功后，这里会显示 upload / convert / ASR / 合计 的毫秒数。</div>
+    </div>
     <button id="hold" type="button">按住说话</button>
     <label for="out">累计转写</label>
     <textarea id="out" readonly spellcheck="false" placeholder="松开按钮后，转写会出现在这里…"></textarea>
@@ -121,6 +154,7 @@
   <script>
 (function () {
   const statusEl = document.getElementById("status");
+  const timingEl = document.getElementById("timingPanel");
   const hold = document.getElementById("hold");
   const out = document.getElementById("out");
 
@@ -133,6 +167,11 @@
   function setStatus(text, cls) {
     statusEl.textContent = text;
     statusEl.className = "status" + (cls ? " " + cls : "");
+  }
+
+  function setTiming(text, hasData) {
+    timingEl.textContent = text;
+    timingEl.className = "timing-panel" + (hasData ? " has-data" : "");
   }
 
   function pickMime() {
@@ -174,6 +213,7 @@
     }
     recording = true;
     setStatus("录音中… 松开后上传转写", "busy");
+    setTiming("（录音中，尚无耗时）", false);
   }
 
   function stopStream() {
@@ -202,6 +242,7 @@
     busy = true;
     hold.disabled = true;
     setStatus("上传并转写中…", "busy");
+    setTiming("（等待服务器…）", false);
     const fd = new FormData();
     fd.append("file", blob, "hold.webm");
     try {
@@ -211,12 +252,19 @@
         const t = (data.text || "").trim();
         const prev = out.value.trimEnd();
         out.value = prev ? prev + "\n" + t : t;
-        let extra = "";
+        setStatus("就绪", "ok");
         if (data.timing) {
           const ti = data.timing;
-          extra = " ｜ upload " + ti.upload_save_ms + "ms · convert " + ti.audio_convert_ms + "ms · ASR " + ti.asr_ms + "ms · 合计 " + ti.total_ms + "ms";
+          setTiming(
+            "耗时（ms）upload=" + ti.upload_save_ms +
+            "  convert=" + ti.audio_convert_ms +
+            "  ASR=" + ti.asr_ms +
+            "  合计=" + ti.total_ms,
+            true
+          );
+        } else {
+          setTiming("（本次响应未带 timing 字段）", false);
         }
-        setStatus("就绪（已追加一行）" + extra, "ok");
       } else {
         const msg = data.error && data.error.message ? data.error.message : JSON.stringify(data);
         setStatus("转写失败：" + msg, "err");
